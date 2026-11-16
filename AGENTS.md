@@ -4,9 +4,10 @@
 
 The kill path has the fewest possible moving parts because it is used in an
 emergency: iPhone Shortcuts → Tailscale → macOS's launchd-activated sshd → a
-forced command in `~/.ssh/authorized_keys`. No daemon, dispatcher file, or build
-step. `install.sh` and `uninstall.sh` are the whole implementation; the README
-owns the manual steps (Remote Login toggle, lock setting, Shortcut setup).
+forced command in `~/.ssh/authorized_keys`. No daemon, installed script, or
+build step. `command.sh` holds the verb logic; `install.sh` joins its
+lines with spaces into the key line's `command="…"`. The README owns the manual
+steps (Remote Login toggle, lock setting, Shortcut setup).
 
 ## Invariants
 
@@ -20,10 +21,13 @@ owns the manual steps (Remote Login toggle, lock setting, Shortcut setup).
   `lock; whoami` falls through to `*`.
 - The Shortcut reports success only when the action can run: `shutdown` first
   checks the sudoers rule with `sudo -n -l` and exits 1 if it is missing.
-- The forced command runs in the user's login shell (often zsh); keep it valid
-  in both bash and zsh, and free of double quotes (it sits inside
-  `command="…"`).
-- `/sbin/shutdown -h now` in the forced command (both the `-l` check and the
+- `command.sh` stays valid once its lines are joined with spaces: every
+  line ends in `in`, `;;`, or `esac`; no comments; no double quotes
+  (`install.sh` rejects them).
+- It runs in the user's login shell (often zsh): keep it valid in bash and zsh.
+  Lint with `shellcheck --shell=bash command.sh` and
+  `zsh -n command.sh`.
+- `/sbin/shutdown -h now` in `command.sh` (both the `-l` check and the
   real call) must match the sudoers rule character for character.
 - `sshd.conf` is the host's whole sshd policy, rendered with `@USER@` → the
   installing user and installed as `/etc/ssh/sshd_config.d/010-local.conf`.
@@ -42,9 +46,8 @@ owns the manual steps (Remote Login toggle, lock setting, Shortcut setup).
   locks after the screen-lock delay. Any delay leaves a window in which someone
   at the keyboard wakes the Mac unlocked, so `install.sh` requires
   `sysadminctl -screenLock status` to report immediate. sysadminctl writes that
-  status through NSLog, to stderr. The wording for a non-zero delay is
-  `screenLock delay is 5 seconds`; the check matches `immediate` for the
-  Immediately setting.
+  status through NSLog, to stderr: `screenLock delay is immediate` or
+  `screenLock delay is 5 seconds`.
 - The Tailscale addresses are stable per node. A re-added iPhone gets new ones;
   rerun `install.sh`.
 - sshd keeps the first value it reads for each option, and

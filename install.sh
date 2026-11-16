@@ -12,11 +12,8 @@ SSHD_TEMPLATE_PATH="${REPO_DIRECTORY}/sshd.conf"
 SSHD_DROPIN_PATH="/etc/ssh/sshd_config.d/010-local.conf"
 SUDOERS_PATH="/etc/sudoers.d/killswitch"
 AUTHORIZED_KEYS_PATH="${HOME}/.ssh/authorized_keys"
-# Runs in the login shell for every connection with this key, whatever the client asks for.
-# shutdown checks the sudoers rule first so the Shortcut fails visibly when it is missing.
-# shellcheck disable=SC2016 # $SSH_ORIGINAL_COMMAND is expanded by the login shell at connection time.
-FORCED_COMMAND='case $SSH_ORIGINAL_COMMAND in lock) pmset displaysleepnow ;; shutdown) sudo -n -l /sbin/shutdown -h now >/dev/null 2>&1 || exit 1; nohup sudo -n /sbin/shutdown -h now </dev/null >/dev/null 2>&1 & ;; *) exit 1 ;; esac'
-readonly USAGE PUBLIC_KEY IPHONE_NAME USER_NAME REPO_DIRECTORY SSHD_TEMPLATE_PATH SSHD_DROPIN_PATH SUDOERS_PATH AUTHORIZED_KEYS_PATH FORCED_COMMAND
+FORCED_COMMAND_PATH="${REPO_DIRECTORY}/command.sh"
+readonly USAGE PUBLIC_KEY IPHONE_NAME USER_NAME REPO_DIRECTORY SSHD_TEMPLATE_PATH SSHD_DROPIN_PATH SUDOERS_PATH AUTHORIZED_KEYS_PATH FORCED_COMMAND_PATH
 
 WORK_DIRECTORY="$(mktemp -d)"
 readonly WORK_DIRECTORY
@@ -73,6 +70,17 @@ install_sshd_dropin() {
   printf 'INSTALL %s\n' "${SSHD_DROPIN_PATH}"
 }
 
+# sshd runs the forced command in the login shell for every connection with this key.
+# authorized_keys holds it on one line inside command="…", so the file's lines are joined with spaces.
+read_forced_command() {
+  FORCED_COMMAND="$(tr -s '[:space:]' ' ' <"${FORCED_COMMAND_PATH}")"
+  FORCED_COMMAND="${FORCED_COMMAND% }"
+  if [[ "${FORCED_COMMAND}" == *'"'* ]]; then
+    printf '%s must not contain double quotes.\n' "${FORCED_COMMAND_PATH}" >&2
+    exit 1
+  fi
+}
+
 install_sudoers_rule() {
   printf '%s ALL=(root) NOPASSWD: /sbin/shutdown -h now\n' "${USER_NAME}" >"${WORK_DIRECTORY}/sudoers"
   visudo -cqf "${WORK_DIRECTORY}/sudoers"
@@ -94,6 +102,7 @@ main() {
   require_remote_login
   require_immediate_screen_lock
   read_key
+  read_forced_command
   resolve_iphone_sources
   install_sshd_dropin
   install_sudoers_rule
