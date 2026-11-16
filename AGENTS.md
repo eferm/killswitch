@@ -4,10 +4,10 @@
 
 The kill path has the fewest possible moving parts because it is used in an
 emergency: iPhone Shortcuts → Tailscale → macOS's launchd-activated sshd → a
-forced command in `~/.ssh/authorized_keys`. No daemon, installed script, or
-build step. `command.sh` holds the verb logic; `install.sh` joins its
-lines with spaces into the key line's `command="…"`. The README owns the manual
-steps (Remote Login toggle, lock setting, Shortcut setup).
+forced command in `~/.ssh/authorized_keys`. That key line is the only installed
+piece on the kill path. `command.sh` holds the verb logic; `install.sh` joins
+its lines into the key line's `command="…"`. The README owns the manual steps
+(Remote Login toggle, lock setting, Shortcut setup).
 
 ## Invariants
 
@@ -20,10 +20,15 @@ steps (Remote Login toggle, lock setting, Shortcut setup).
 - Unknown input exits 1. Verbs match the whole `$SSH_ORIGINAL_COMMAND`, so
   `lock; whoami` falls through to `*`.
 - The Shortcut reports success only when the action can run: `shutdown` first
-  checks the sudoers rule with `sudo -n -l` and exits 1 if it is missing.
-- `command.sh` stays valid once its lines are joined with spaces: every
-  line ends in `in`, `;;`, or `esac`; no comments; no double quotes
-  (`install.sh` rejects them).
+  checks the sudoers rule with `sudo -n -l` and exits 1 if it is missing. sudo's
+  error message passes through to the Shortcut, which shows it as the failure
+  reason.
+- `command.sh` stays valid once its lines are joined: `install.sh` strips each
+  line's leading indentation, joins lines with a single space, rejects double
+  quotes and backslashes (sshd treats both specially inside `command="…"`),
+  and runs `bash -n -c` and `zsh -n -c` on the result before installing. Every
+  line ends in `in`, `;;`, or `esac`, and comments are invalid (a `#` swallows
+  the rest of the joined line).
 - It runs in the user's login shell (often zsh): keep it valid in bash and zsh.
   Lint with `shellcheck --shell=bash command.sh` and
   `zsh -n command.sh`.

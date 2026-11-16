@@ -71,14 +71,14 @@ install_sshd_dropin() {
 }
 
 # sshd runs the forced command in the login shell for every connection with this key.
-# authorized_keys holds it on one line inside command="…", so the file's lines are joined with spaces.
+# authorized_keys holds it on one line inside command="…", where sshd treats " and \ specially,
+# so the file's lines are unindented and joined with spaces, then parsed as the login shell will.
 read_forced_command() {
-  FORCED_COMMAND="$(tr -s '[:space:]' ' ' <"${FORCED_COMMAND_PATH}")"
+  FORCED_COMMAND="$(sed 's/^[[:space:]]*//' "${FORCED_COMMAND_PATH}" | tr '\n' ' ')"
   FORCED_COMMAND="${FORCED_COMMAND% }"
-  if [[ "${FORCED_COMMAND}" == *'"'* ]]; then
-    printf '%s must not contain double quotes.\n' "${FORCED_COMMAND_PATH}" >&2
-    exit 1
-  fi
+  [[ "${FORCED_COMMAND}" != *[\"\\]* ]] || exit 1
+  bash -n -c "${FORCED_COMMAND}"
+  zsh -n -c "${FORCED_COMMAND}"
 }
 
 install_sudoers_rule() {
