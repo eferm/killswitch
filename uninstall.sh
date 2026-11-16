@@ -13,7 +13,7 @@ trap 'rm -rf "${WORK_DIRECTORY}"' EXIT
 
 remove_key_line() {
   touch "${AUTHORIZED_KEYS_PATH}"
-  sed '/ killswitch$/d' "${AUTHORIZED_KEYS_PATH}" >"${WORK_DIRECTORY}/authorized_keys"
+  sed '/^restrict,from=.* killswitch$/d' "${AUTHORIZED_KEYS_PATH}" >"${WORK_DIRECTORY}/authorized_keys"
   install -m 600 "${WORK_DIRECTORY}/authorized_keys" "${AUTHORIZED_KEYS_PATH}"
   printf 'REMOVE killswitch line from %s\n' "${AUTHORIZED_KEYS_PATH}"
 }

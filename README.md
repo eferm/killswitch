@@ -2,7 +2,7 @@
 
 Lock or shut down a Mac from an iPhone Shortcut over Tailscale.
 
-`install.sh` also installs a strict sshd policy,
+`install.sh` also installs a strict sshd policy (`sshd.conf`) as
 `/etc/ssh/sshd_config.d/010-local.conf`: SSH logins only for you, only over
 Tailscale, only with an ed25519 key, no forwarding. It stops if a different
 `010-local.conf` already exists.
@@ -11,6 +11,7 @@ Tailscale, only with an ed25519 key, no forwarding. It stops if a different
 
 - Mac and iPhone on the same tailnet
 - Admin account on the Mac
+- Tailscale CLI on the Mac (Tailscale app → Settings → CLI integration)
 - Tested on macOS 27 and iOS 26
 
 ## Setup
@@ -31,8 +32,11 @@ Tailscale, only with an ed25519 key, no forwarding. It stops if a different
 5. **Mac:**
 
    ```sh
-   ./install.sh "$(pbpaste)"
+   ./install.sh "$(pbpaste)" <iphone-tailscale-name>
    ```
+
+   The key then works only from that iPhone's Tailscale addresses. Rerun after
+   the iPhone is re-added to the tailnet.
 
 6. **iPhone:** duplicate the shortcut as **Shut Down Mac** with script
    `shutdown`.
