@@ -21,8 +21,9 @@ LAN SSH.
 1. **Mac:** System Settings → General → Sharing → **Remote Login** on.
 2. **Mac:** System Settings → Lock Screen → Require password after screen saver
    begins or display is off → **Immediately**.
-3. **iPhone:** Shortcuts → new shortcut **Lock Mac** → **Run Script Over SSH**:
-   - Script: `lock`
+3. **iPhone:** Shortcuts → create **Lock Mac** and **Shut Down Mac**, each with
+   one **Run Script Over SSH** action:
+   - Script: `lock` or `shutdown`
    - Host: `<mac>.<tailnet>.ts.net`
    - Port: `22`
    - User: output of `id -un` on the Mac
@@ -39,9 +40,6 @@ LAN SSH.
 
    The key then works only from that iPhone's Tailscale addresses. Rerun after
    the iPhone is re-added to the tailnet.
-
-6. **iPhone:** duplicate the shortcut as **Shut Down Mac** with script
-   `shutdown`.
 
 ## Uninstall
 

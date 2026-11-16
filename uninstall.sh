@@ -26,7 +26,7 @@ remove_sudoers_rule() {
 main() {
 	remove_key_line
 	remove_sudoers_rule
-	# The sshd drop-in keeps Remote Login key-only and tailnet-only; it goes with Remote Login, not with killswitch.
+	# Removing 010-local.conf while Remote Login is on re-enables password logins; remove both together.
 	printf 'Remote Login and /etc/ssh/sshd_config.d/010-local.conf are unchanged; remove them together.\n'
 }
 

@@ -30,7 +30,11 @@ its lines into the key line's `command="…"`. The README owns the manual steps
   ends in `in`, `;;`, or `esac`, and comments are invalid (a `#` swallows the
   rest of the joined line).
 - It runs in the user's login shell (often zsh): keep it valid in bash and zsh.
-  Lint with `shellcheck --shell=bash command.sh` and `zsh -n command.sh`.
+  Lint with `shellcheck --shell=bash command.sh` and `zsh -n command.sh`. shfmt
+  rewrites it into one-statement-per-line form, which no longer joins, so
+  `command.sh` is formatted by hand.
+- Tests of `command.sh` on a Mac with killswitch installed exercise `lock` and
+  invalid input only: the sudoers rule makes `shutdown` real.
 - `/sbin/shutdown -h now` in `command.sh` (both the `-l` check and the real
   call) must match the sudoers rule character for character.
 - `sshd.conf` is the host's whole sshd policy, rendered with `@USER@` → the
@@ -52,9 +56,11 @@ its lines into the key line's `command="…"`. The README owns the manual steps
 - `lock` runs `pmset displaysleepnow`, which only darkens the display; macOS
   locks after the screen-lock delay. Any delay leaves a window in which someone
   at the keyboard wakes the Mac unlocked, so `install.sh` requires
-  `sysadminctl -screenLock status` to report immediate. sysadminctl writes that
-  status through NSLog, to stderr: `screenLock delay is immediate` or
-  `screenLock delay is 5 seconds`.
+  `sysadminctl -screenLock status` to report immediate, and `lock` in
+  `command.sh` checks it again after darkening the display and exits 1 if the
+  setting has drifted. sysadminctl reports the real setting from an SSH session.
+  sysadminctl writes that status through NSLog, to stderr:
+  `screenLock delay is immediate` or `screenLock delay is 5 seconds`.
 - The Tailscale addresses are stable per node. A re-added iPhone gets new ones;
   rerun `install.sh`.
 - sshd keeps the first value it reads for each option, and
