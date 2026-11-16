@@ -12,22 +12,22 @@ readonly WORK_DIRECTORY
 trap 'rm -rf "${WORK_DIRECTORY}"' EXIT
 
 remove_key_line() {
-  touch "${AUTHORIZED_KEYS_PATH}"
-  sed '/^restrict,from=.* killswitch$/d' "${AUTHORIZED_KEYS_PATH}" >"${WORK_DIRECTORY}/authorized_keys"
-  install -m 600 "${WORK_DIRECTORY}/authorized_keys" "${AUTHORIZED_KEYS_PATH}"
-  printf 'REMOVE killswitch line from %s\n' "${AUTHORIZED_KEYS_PATH}"
+	touch "${AUTHORIZED_KEYS_PATH}"
+	sed '/^restrict,from=.* killswitch$/d' "${AUTHORIZED_KEYS_PATH}" >"${WORK_DIRECTORY}/authorized_keys"
+	install -m 600 "${WORK_DIRECTORY}/authorized_keys" "${AUTHORIZED_KEYS_PATH}"
+	printf 'REMOVE killswitch line from %s\n' "${AUTHORIZED_KEYS_PATH}"
 }
 
 remove_sudoers_rule() {
-  sudo rm -f -- "${SUDOERS_PATH}"
-  printf 'REMOVE %s\n' "${SUDOERS_PATH}"
+	sudo rm -f -- "${SUDOERS_PATH}"
+	printf 'REMOVE %s\n' "${SUDOERS_PATH}"
 }
 
 main() {
-  remove_key_line
-  remove_sudoers_rule
-  # The sshd drop-in keeps Remote Login key-only and tailnet-only; it goes with Remote Login, not with killswitch.
-  printf 'Remote Login and /etc/ssh/sshd_config.d/010-local.conf are unchanged; remove them together.\n'
+	remove_key_line
+	remove_sudoers_rule
+	# The sshd drop-in keeps Remote Login key-only and tailnet-only; it goes with Remote Login, not with killswitch.
+	printf 'Remote Login and /etc/ssh/sshd_config.d/010-local.conf are unchanged; remove them together.\n'
 }
 
 main

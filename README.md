@@ -2,10 +2,12 @@
 
 Lock or shut down a Mac from an iPhone Shortcut over Tailscale.
 
-`install.sh` also installs a strict sshd policy (`sshd.conf`) as
+`install.sh` also installs a strict sshd policy as
 `/etc/ssh/sshd_config.d/010-local.conf`: SSH logins only for you, only over
 Tailscale, only with an ed25519 key, no forwarding. It stops if a different
-`010-local.conf` already exists.
+`010-local.conf` already exists. Add `--no-sshd-policy` as the last argument to
+keep the Mac's existing sshd configuration, e.g. on a home server reached over
+LAN SSH.
 
 ## Requirements
 

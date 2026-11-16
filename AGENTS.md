@@ -25,22 +25,24 @@ its lines into the key line's `command="…"`. The README owns the manual steps
   reason.
 - `command.sh` stays valid once its lines are joined: `install.sh` strips each
   line's leading indentation, joins lines with a single space, rejects double
-  quotes and backslashes (sshd treats both specially inside `command="…"`),
-  and runs `bash -n -c` and `zsh -n -c` on the result before installing. Every
-  line ends in `in`, `;;`, or `esac`, and comments are invalid (a `#` swallows
-  the rest of the joined line).
+  quotes and backslashes (sshd treats both specially inside `command="…"`), and
+  runs `bash -n -c` and `zsh -n -c` on the result before installing. Every line
+  ends in `in`, `;;`, or `esac`, and comments are invalid (a `#` swallows the
+  rest of the joined line).
 - It runs in the user's login shell (often zsh): keep it valid in bash and zsh.
-  Lint with `shellcheck --shell=bash command.sh` and
-  `zsh -n command.sh`.
-- `/sbin/shutdown -h now` in `command.sh` (both the `-l` check and the
-  real call) must match the sudoers rule character for character.
+  Lint with `shellcheck --shell=bash command.sh` and `zsh -n command.sh`.
+- `/sbin/shutdown -h now` in `command.sh` (both the `-l` check and the real
+  call) must match the sudoers rule character for character.
 - `sshd.conf` is the host's whole sshd policy, rendered with `@USER@` → the
   installing user and installed as `/etc/ssh/sshd_config.d/010-local.conf`.
   Remote Login is only safe with it in place, so `uninstall.sh` leaves it
   installed; it goes with Remote Login.
 - The sshd policy is deliberately opinionated (one user, Tailscale only, ed25519
   only, no forwarding). `install.sh` installs it when no `010-local.conf` exists
-  or the installed one matches, and stops otherwise.
+  or the installed one matches, and stops otherwise. `--no-sshd-policy` skips it
+  for hosts that own their SSH access policy (a home server reached over LAN
+  SSH); the key line's `restrict`, `from=`, and `command=` protect the kill path
+  either way.
 - `sshd.conf` accepts only ed25519 keys; `install.sh` rejects other key types.
 - Install converges: each run writes the full content of every file and replaces
   the `restrict,from=…` line ending in ` killswitch`.
