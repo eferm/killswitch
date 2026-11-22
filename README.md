@@ -35,8 +35,11 @@ LAN SSH.
 5. **Mac:**
 
    ```sh
-   ./install.sh "$(pbpaste)" <iphone-tailscale-name>
+   ./install.sh "$(pbpaste)" <iphone-tailscale-name> [--no-sshd-policy]
    ```
+
+   Add `--no-sshd-policy` to keep the Mac's existing sshd configuration (see
+   above).
 
    The key then works only from that iPhone's Tailscale addresses. Rerun after
    the iPhone is re-added to the tailnet.
